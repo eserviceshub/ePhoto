@@ -48,7 +48,10 @@ class LoginForm extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final emailController = useTextEditingController.fromValue(TextEditingValue.empty);
     final passwordController = useTextEditingController.fromValue(TextEditingValue.empty);
-    final serverEndpointController = useTextEditingController.fromValue(TextEditingValue.empty);
+    final serverEndpointController = useTextEditingController.fromValue(
+          const TextEditingValue(text: "http://10.0.2.2:3000"),
+        );
+        // https://demo.immich.app
     final emailFocusNode = useFocusNode();
     final passwordFocusNode = useFocusNode();
     final serverEndpointFocusNode = useFocusNode();
@@ -324,58 +327,15 @@ class LoginForm extends HookConsumerWidget {
     }
 
     buildSelectServer() {
-      const buttonRadius = 25.0;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ServerEndpointInput(
-            controller: serverEndpointController,
-            focusNode: serverEndpointFocusNode,
-            onSubmit: getServerAuthSettings,
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(buttonRadius),
-                        bottomLeft: Radius.circular(buttonRadius),
-                      ),
-                    ),
-                  ),
-                  onPressed: () => context.pushRoute(const SettingsRoute()),
-                  icon: const Icon(Icons.settings_rounded),
-                  label: const Text(""),
-                ),
-              ),
-              const SizedBox(width: 1),
-              Expanded(
-                flex: 3,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(buttonRadius),
-                        bottomRight: Radius.circular(buttonRadius),
-                      ),
-                    ),
-                  ),
-                  onPressed: isLoadingServer.value ? null : getServerAuthSettings,
-                  icon: const Icon(Icons.arrow_forward_rounded),
-                  label: const Text('next', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)).tr(),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          if (isLoadingServer.value) const LoadingIcon(),
-        ],
-      );
+      // Skip showing the input field and proceed directly to authentication
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (serverEndpointController.text.isNotEmpty) {
+          getServerAuthSettings();
+        }
+      });
+
+      // Return an empty container since we're hiding the input
+      return Container();
     }
 
     buildVersionCompatWarning() {
@@ -405,11 +365,6 @@ class LoginForm extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             buildVersionCompatWarning(),
-            Text(
-              sanitizeUrl(serverEndpointController.text),
-              style: context.textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
             if (isPasswordLoginEnable.value) ...[
               const SizedBox(height: 18),
               EmailInput(
@@ -447,12 +402,37 @@ class LoginForm extends HookConsumerWidget {
                     ],
                   ),
             if (!isOauthEnable.value && !isPasswordLoginEnable.value) Center(child: const Text('login_disabled').tr()),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => serverEndpoint.value = null,
-              label: const Text('back').tr(),
-            ),
+
+            // Register link
+            if (isPasswordLoginEnable.value && (!serverInfo.serverConfig.isInitialized || serverInfo.serverConfig.publicUsers)) ...[
+              const SizedBox(height: 16),
+              Center(
+                child: GestureDetector(
+                  onTap: () {
+                    context.pushRoute(const RegisterRoute());
+                  },
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        color: context.isDarkTheme ? Colors.white70 : Colors.black87,
+                        fontSize: 14,
+                      ),
+                      children: [
+                        TextSpan(text: 'login_form_no_account'.tr()),
+                        const TextSpan(text: ' '),
+                        TextSpan(
+                          text: 'login_form_register_link'.tr(),
+                          style: TextStyle(
+                            color: context.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       );
