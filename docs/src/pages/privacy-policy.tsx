@@ -8,7 +8,7 @@ function HomepageHeader() {
           <h1>Privacy Policy</h1>
           <p>Last updated: July 31st 2024</p>
           <p>
-            Welcome to Immich. We are committed to respecting your privacy. This Privacy Policy sets out how we collect,
+            Welcome to Photo Hub. We are committed to respecting your privacy. This Privacy Policy sets out how we collect,
             use, and share information when you use our Immich app.
           </p>
         </section>

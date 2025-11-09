@@ -284,7 +284,7 @@ export class NotificationService extends BaseService {
       name: JobName.SendMail,
       data: {
         to: user.email,
-        subject: 'Welcome to Immich',
+        subject: 'Welcome to Photo Hub',
         html,
         text,
       },
